@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드럼몬스터 콘텐츠 생성기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+  .header { background: #1a1a1a; color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header span { font-size: 12px; color: #888; }
+  .container { max-width: 720px; margin: 32px auto; padding: 0 16px; }
+  .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e5; padding: 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 14px; font-weight: 600; color: #666; margin-bottom: 16px; letter-spacing: .04em; }
+  .topic-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; cursor: pointer; margin-bottom: 8px; transition: all .15s; }
+  .topic-btn:hover { background: #f9f9f9; border-color: #ccc; }
+  .topic-btn.selected { border: 2px solid #1a1a1a; background: #f9f9f9; }
+  .topic-btn.done { opacity: .4; cursor: not-allowed; }
+  .topic-title { font-size: 14px; font-weight: 500; margin-top: 4px; }
+  .topic-meta { font-size: 12px; color: #999; margin-top: 2px; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-history { background: #ede9fe; color: #5b21b6; }
+  .pill-review { background: #d1fae5; color: #065f46; }
+  .pill-artist { background: #fef3c7; color: #92400e; }
+  .pill-done { background: #d1fae5; color: #065f46; }
+  .gen-btn { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .gen-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .gen-btn:hover:not(:disabled) { opacity: .85; }
+  .loading-bar { height: 3px; background: #e5e5e5; border-radius: 2px; overflow: hidden; margin: 12px 0; }
+  .loading-fill { height: 100%; background: #1a1a1a; border-radius: 2px; width: 0%; transition: width .3s; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn { padding: 7px 16px; font-size: 13px; font-weight: 500; border: 1px solid #e5e5e5; border-radius: 20px; background: #fff; cursor: pointer; transition: all .15s; }
+  .tab-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .slide-card { background: #f9f9f9; border-radius: 8px; padding: 16px; margin-bottom: 10px; border-left: 3px solid #1a1a1a; }
+  .slide-num { font-size: 11px; color: #999; margin-bottom: 4px; }
+  .slide-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .slide-body { font-size: 13px; color: #555; line-height: 1.7; }
+  .caption-box { background: #f9f9f9; border-radius: 8px; padding: 16px; }
+  .hashtag { display: inline-block; font-size: 12px; color: #2563eb; margin-right: 8px; margin-top: 4px; }
+  .status-msg { font-size: 12px; color: #666; padding: 10px 14px; background: #f5f5f5; border-radius: 8px; margin-bottom: 16px; }
+  .save-success { color: #065f46; background: #d1fae5; }
+  .action-btns { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .action-btn { padding: 8px 16px; font-size: 13px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; cursor: pointer; }
+  .action-btn:hover { background: #f5f5f5; }
+  .step-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #999; margin-bottom: 20px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #e5e5e5; }
+  .dot.active { background: #1a1a1a; }
+  .dot.done { background: #10b981; }
+  .sep { color: #ddd; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>드럼몬스터 콘텐츠 생성기</h1>
+  <span>구글 시트 연동</span>
+</div>
+
+<div class="container">
+
+  <div class="step-indicator">
+    <span class="dot" id="dot1"></span> 주제 선택
+    <span class="sep">→</span>
+    <span class="dot" id="dot2"></span> 생성
+    <span class="sep">→</span>
+    <span class="dot" id="dot3"></span> 저장 완료
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+    <div class="card">
+      <h2>주제 선택</h2>
+      <div class="status-msg" id="load-status">구글 시트에서 주제 불러오는 중...</div>
+      <div id="topic-list"></div>
+      <button class="gen-btn" id="gen-btn" onclick="generate()" disabled>콘텐츠 생성하기 →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none">
+    <div class="card">
+      <h2>생성 중</h2>
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px" id="gen-status">Claude API 호출 중...</div>
+      <div class="loading-bar"><div class="loading-fill" id="lbar"></div></div>
+      <div style="font-size:12px;color:#999" id="gen-detail">슬라이드 스크립트 작성 중</div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" style="display:none">
+    <div class="card">
+      <div class="status-msg" id="save-status"></div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('slides')">슬라이드 스크립트</button>
+        <button class="tab-btn" onclick="showTab('caption')">인스타 캡션</button>
+        <button class="tab-btn" onclick="showTab('blog')">블로그 초안</button>
+      </div>
+      <div id="out-slides"></div>
+      <div id="out-caption" style="display:none"></div>
+      <div id="out-blog" style="display:none"></div>
+      <div class="action-btns">
+        <button class="action-btn" onclick="resetApp()">← 다른 주제 생성</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh4wEpQA4r7L_OQr-E-vCUFaxMDHk0PvzeLlxTD9vGLFdbFGE6AB0iWzH_LMxq4r95/exec';
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+let selectedTopic = null;
+let topicsData = [];
+const catClass = { '악기역사':'pill-history', '제품리뷰':'pill-review', '드러머소개':'pill-artist' };
+
+async function loadTopics() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getTopics');
+    const data = await res.json();
+    topicsData = data.topics || [];
+    document.getElementById('load-status').textContent = `시트에서 주제 ${topicsData.length}개 불러왔어요`;
+  } catch(e) {
+    document.getElementById('load-status').textContent = '시트 연결 실패 — 샘플 주제로 대체합니다';
+    topicsData = [
+      {id:'001', category:'악기역사', topic:'심벌의 역사 — 터키부터 지금까지', status:'대기중'},
+      {id:'002', category:'제품리뷰', topic:'입문자용 스네어 드럼 TOP 5', status:'대기중'},
+      {id:'003', category:'드러머소개', topic:'Elvin Jones — 재즈 드러밍의 혁명', status:'대기중'}
+    ];
+  }
+  renderTopics();
+  document.getElementById('dot1').className = 'dot active';
+}
+
+function renderTopics() {
+  const list = document.getElementById('topic-list');
+  list.innerHTML = topicsData.map(t => `
+    <button class="topic-btn ${t.status==='발행완료'?'done':''}" id="t${t.id}"
+      onclick="${t.status==='발행완료'?'':` selectTopic('${t.id}')`}">
+      <div>
+        <span class="pill ${catClass[t.category]||''}">${t.category}</span>
+        ${t.status==='발행완료'?'<span class="pill pill-done" style="float:right">발행완료</span>':''}
+      </div>
+      <div class="topic-title">${t.topic}</div>
+      <div class="topic-meta">id: ${t.id}</div>
+    </button>
+  `).join('');
+}
+
+function selectTopic(id) {
+  selectedTopic = topicsData.find(t => t.id === id);
+  topicsData.forEach(t => {
+    const el = document.getElementById('t'+t.id);
+    if(el) el.classList.toggle('selected', t.id === id);
+  });
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = false;
+}
+
+function buildPrompt(topic) {
+  return `드럼몬스터(사당동 드럼 악기점) SNS용 카드뉴스를 만들어줘.
+주제: ${topic.topic}
+카테고리: ${topic.category}
+
+아래 JSON 형식으로만 응답해. 다른 말은 하지 마.
+{
+  "slides": [
+    {"no": 1, "title": "...", "body": "..."},
+    {"no": 2, "title": "...", "body": "..."},
+    {"no": 3, "title": "...", "body": "..."},
+    {"no": 4, "title": "...", "body": "..."},
+    {"no": 5, "title": "드럼몬스터에서 만나보세요", "body": "사당동 매장 방문 또는 온라인 구매 가능."}
+  ],
+  "caption": "인스타그램 캡션 2~3줄",
+  "hashtags": ["태그1","태그2","태그3","태그4","태그5"],
+  "blog_intro": "블로그 도입부 3~4줄, SEO 키워드 포함"
+}`;
+}
+
+async function generate() {
+  if(!selectedTopic) return;
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('dot1').className = 'dot done';
+  document.getElementById('dot2').className = 'dot active';
+
+  const bar = document.getElementById('lbar');
+  const detail = document.getElementById('gen-detail');
+  let prog = 0;
+  const ticker = setInterval(() => {
+    prog = Math.min(prog + Math.random()*7, 88);
+    bar.style.width = prog+'%';
+    if(prog < 30) detail.textContent = 'Claude API 연결 중...';
+    else if(prog < 65) detail.textContent = '슬라이드 스크립트 작성 중...';
+    else detail.textContent = '캡션 & 블로그 초안 생성 중...';
+  }, 200);
+
+  let parsed;
+  try {
+    const res = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: '드럼몬스터 SNS 콘텐츠 담당자입니다. 요청한 JSON 형식으로만 응답하세요.',
+        messages: [{ role: 'user', content: buildPrompt(selectedTopic) }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(b => b.text||'').join('');
+    parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    parsed = getFallback(selectedTopic.id);
+  }
+
+  clearInterval(ticker);
+  bar.style.width = '100%';
+  document.getElementById('gen-status').textContent = '구글 시트에 저장 중...';
+
+  let saved = false;
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'saveContent',
+        topic_id: selectedTopic.id,
+        slides: parsed.slides,
+        caption: parsed.caption,
+        hashtags: parsed.hashtags,
+        blog_intro: parsed.blog_intro
+      })
+    });
+    saved = true;
+  } catch(e) { saved = false; }
+
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'block';
+  document.getElementById('dot2').className = 'dot done';
+  document.getElementById('dot3').className = 'dot done';
+
+  const saveMsg = document.getElementById('save-status');
+  saveMsg.textContent = saved ? '구글 시트 저장 완료 — 콘텐츠출력 시트에서 확인하세요' : '콘텐츠 생성 완료';
+  if(saved) saveMsg.classList.add('save-success');
+
+  renderResult(parsed);
+}
+
+function renderResult(data) {
+  document.getElementById('out-slides').innerHTML = data.slides.map(s => `
+    <div class="slide-card">
+      <div class="slide-num">${s.no} / ${data.slides.length}</div>
+      <div class="slide-title">${s.title}</div>
+      <div class="slide-body">${s.body}</div>
+    </div>`).join('');
+
+  const tags = (data.hashtags||[]).map(t => `<span class="hashtag">#${t.replace('#','')}</span>`).join('');
+  document.getElementById('out-caption').innerHTML = `
+    <div class="caption-box">
+      <div style="font-size:14px;line-height:1.8;margin-bottom:12px">${data.caption}</div>
+      <div style="border-top:1px solid #e5e5e5;padding-top:10px">${tags}</div>
+    </div>`;
+
+  document.getElementById('out-blog').innerHTML = `
+    <div class="caption-box">
+      <div style="font-size:12px;color:#999;margin-bottom:8px">블로그 도입부</div>
+      <div style="font-size:14px;line-height:1.8">${data.blog_intro}</div>
+    </div>`;
+}
+
+function showTab(name) {
+  ['slides','caption','blog'].forEach(t => {
+    document.getElementById('out-'+t).style.display = t===name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['slides','caption','blog'][i]===name);
+  });
+}
+
+function getFallback(id) {
+  const f = {
+    '001':{ slides:[{no:1,title:'심벌, 소리의 시작',body:'고대 중동에서 시작된 심벌은 수천 년의 역사를 가진 타악기입니다.'},{no:2,title:'터키 장인의 비밀',body:'오스만 제국의 장인들이 개발한 합금 기법이 오늘날 Zildjian의 기원입니다.'},{no:3,title:'Zildjian 400년',body:'1623년 창업 이후 비밀 합금 공식을 가문 대대로 전수하고 있습니다.'},{no:4,title:'재즈가 바꾼 심벌',body:'20세기 재즈의 등장으로 크래시·라이드·하이햇이 분화했습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'심벌 하나에 400년의 역사가 담겨 있습니다.', hashtags:['심벌역사','Zildjian','드럼악기','드럼몬스터','사당드럼'], blog_intro:'심벌의 역사는 단순한 악기사를 넘어 문명 교류의 이야기입니다.' },
+    '002':{ slides:[{no:1,title:'스네어, 드럼의 핵심',body:'입문자에게 맞는 스네어 5가지를 엄선했습니다.'},{no:2,title:'1위 Pearl Export',body:'가성비 최고의 입문용 스네어입니다.'},{no:3,title:'2위 Ludwig Accent',body:'밝고 선명한 소리로 팝·록에 적합합니다.'},{no:4,title:'구매 전 체크리스트',body:'재질·직경·깊이를 꼭 확인하세요.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'스네어 고민 중이신가요? TOP 5를 확인해보세요.', hashtags:['스네어드럼','입문드럼','드럼추천','드럼몬스터','드럼구매'], blog_intro:'입문자에게 맞는 스네어를 고르는 것은 쉽지 않습니다.' },
+    '003':{ slides:[{no:1,title:'Elvin Jones는 누구',body:'1927년 미시간 출생. 재즈 명가 존스 형제 중 막내입니다.'},{no:2,title:'Coltrane과의 만남',body:'1960~1966년 John Coltrane 4중주단에서 역사를 새로 썼습니다.'},{no:3,title:'폴리리듬의 마법',body:'복합 리듬으로 드럼을 멜로디 악기의 경지로 끌어올렸습니다.'},{no:4,title:'그가 남긴 유산',body:'2004년 별세 후에도 드럼 교육의 교과서로 남아 있습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'재즈 드럼의 역사를 바꾼 Elvin Jones.', hashtags:['ElvinJones','재즈드럼','드럼역사','드러머','드럼몬스터'], blog_intro:'재즈 역사에서 드럼이 표현의 중심이 된 순간, 그 중심에 Elvin Jones가 있었습니다.' }
+  };
+  return f[id] || f['001'];
+}
+
+function resetApp() {
+  selectedTopic = null;
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  ['dot1','dot2','dot3'].forEach(d => document.getElementById(d).className = 'dot');
+  document.getElementById('gen-btn').disabled = true;
+  loadTopics();
+}
+
+loadTopics();
+</script>
+</body>
+</html>
