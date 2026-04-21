@@ -148,10 +148,10 @@ function renderTopics() {
 }
 
 function selectTopic(id) {
-  selectedTopic = topicsData.find(t => t.id === id);
+  selectedTopic = topicsData.find(t => String(t.id) === String(id));
   topicsData.forEach(t => {
     const el = document.getElementById('t'+t.id);
-    if(el) el.classList.toggle('selected', t.id === id);
+    if(el) el.classList.toggle('selected', String(t.id) === String(id));
   });
   const btn = document.getElementById('gen-btn');
   btn.disabled = false;
