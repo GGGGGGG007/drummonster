@@ -4,114 +4,191 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>드럼몬스터 콘텐츠 생성기</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
   .header { background: #1a1a1a; color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
   .header h1 { font-size: 16px; font-weight: 600; }
-  .header span { font-size: 12px; color: #888; }
-  .container { max-width: 720px; margin: 32px auto; padding: 0 16px; }
+  .header .orange { color: #FF6B00; }
+  .container { max-width: 800px; margin: 32px auto; padding: 0 16px; }
   .card { background: #fff; border-radius: 12px; border: 1px solid #e5e5e5; padding: 24px; margin-bottom: 20px; }
-  .card h2 { font-size: 14px; font-weight: 600; color: #666; margin-bottom: 16px; letter-spacing: .04em; }
+  .card h2 { font-size: 13px; font-weight: 600; color: #999; margin-bottom: 16px; letter-spacing: .06em; text-transform: uppercase; }
   .topic-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; cursor: pointer; margin-bottom: 8px; transition: all .15s; }
-  .topic-btn:hover { background: #f9f9f9; border-color: #ccc; }
-  .topic-btn.selected { border: 2px solid #1a1a1a; background: #f9f9f9; }
+  .topic-btn:hover { background: #fff8f4; border-color: #FF6B00; }
+  .topic-btn.selected { border: 2px solid #FF6B00; background: #fff8f4; }
   .topic-btn.done { opacity: .4; cursor: not-allowed; }
   .topic-title { font-size: 14px; font-weight: 500; margin-top: 4px; }
   .topic-meta { font-size: 12px; color: #999; margin-top: 2px; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .pill-history { background: #ede9fe; color: #5b21b6; }
-  .pill-review { background: #d1fae5; color: #065f46; }
-  .pill-artist { background: #fef3c7; color: #92400e; }
-  .pill-done { background: #d1fae5; color: #065f46; }
-  .gen-btn { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .pill-history { background: #fff0e6; color: #FF6B00; }
+  .pill-review { background: #e6f4ff; color: #0066cc; }
+  .pill-artist { background: #f0f0f0; color: #444; }
+  .pill-done { background: #e6faf0; color: #00884d; }
+  .gen-btn { width: 100%; padding: 14px; background: #FF6B00; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
   .gen-btn:disabled { opacity: .3; cursor: not-allowed; }
-  .gen-btn:hover:not(:disabled) { opacity: .85; }
+  .gen-btn:hover:not(:disabled) { opacity: .88; }
   .loading-bar { height: 3px; background: #e5e5e5; border-radius: 2px; overflow: hidden; margin: 12px 0; }
-  .loading-fill { height: 100%; background: #1a1a1a; border-radius: 2px; width: 0%; transition: width .3s; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .loading-fill { height: 100%; background: #FF6B00; border-radius: 2px; width: 0%; transition: width .3s; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .tab-btn { padding: 7px 16px; font-size: 13px; font-weight: 500; border: 1px solid #e5e5e5; border-radius: 20px; background: #fff; cursor: pointer; transition: all .15s; }
   .tab-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-  .slide-card { background: #f9f9f9; border-radius: 8px; padding: 16px; margin-bottom: 10px; border-left: 3px solid #1a1a1a; }
+  .slide-card { background: #f9f9f9; border-radius: 8px; padding: 16px; margin-bottom: 10px; border-left: 3px solid #FF6B00; }
   .slide-num { font-size: 11px; color: #999; margin-bottom: 4px; }
   .slide-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
   .slide-body { font-size: 13px; color: #555; line-height: 1.7; }
   .caption-box { background: #f9f9f9; border-radius: 8px; padding: 16px; }
-  .hashtag { display: inline-block; font-size: 12px; color: #2563eb; margin-right: 8px; margin-top: 4px; }
+  .hashtag { display: inline-block; font-size: 12px; color: #FF6B00; margin-right: 8px; margin-top: 4px; }
   .status-msg { font-size: 12px; color: #666; padding: 10px 14px; background: #f5f5f5; border-radius: 8px; margin-bottom: 16px; }
-  .save-success { color: #065f46; background: #d1fae5; }
+  .save-success { color: #00884d; background: #e6faf0; }
   .action-btns { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
   .action-btn { padding: 8px 16px; font-size: 13px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; cursor: pointer; }
   .action-btn:hover { background: #f5f5f5; }
+  .dl-btn { padding: 8px 16px; font-size: 13px; border: none; border-radius: 8px; background: #FF6B00; color: #fff; cursor: pointer; font-weight: 600; }
+  .dl-btn:hover { opacity: .88; }
   .step-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #999; margin-bottom: 20px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #e5e5e5; }
-  .dot.active { background: #1a1a1a; }
-  .dot.done { background: #10b981; }
+  .dot.active { background: #FF6B00; }
+  .dot.done { background: #00884d; }
   .sep { color: #ddd; }
+  .url-input { width: 100%; padding: 10px 14px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 13px; margin-bottom: 8px; }
+  .url-input:focus { outline: none; border-color: #FF6B00; }
+  .crawl-status { font-size: 12px; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; display: none; }
+  .crawl-ok { background: #e6faf0; color: #00884d; display: block; }
+  .crawl-fail { background: #fff0e6; color: #FF6B00; display: block; }
+  .upload-area { border: 1.5px dashed #e5e5e5; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all .15s; margin-bottom: 12px; }
+  .upload-area:hover { border-color: #FF6B00; background: #fff8f4; }
+  .upload-area.hidden { display: none; }
+  .img-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: none; }
+  .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .canvas-wrap { position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; border: 1px solid #e5e5e5; transition: transform .15s; }
+  .canvas-wrap:hover { transform: scale(1.02); }
+  .canvas-wrap .dl-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; font-weight: 600; text-align: center; padding: 6px; opacity: 0; transition: opacity .15s; }
+  .canvas-wrap:hover .dl-overlay { opacity: 1; }
+  .render-area { position: absolute; left: -9999px; top: 0; }
+  .insta-card { width: 1080px; height: 1080px; background: #1a1a1a; display: flex; flex-direction: column; justify-content: space-between; padding: 80px; font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; position: relative; overflow: hidden; }
+  .insta-card .bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.25; }
+  .insta-card .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.7) 100%); }
+  .insta-card .content { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
+  .insta-card .accent-bar { width: 60px; height: 6px; background: #FF6B00; border-radius: 3px; margin-bottom: 40px; }
+  .insta-card .slide-no { font-size: 22px; color: #FF6B00; font-weight: 700; margin-bottom: 20px; }
+  .insta-card .card-title { font-size: 64px; font-weight: 700; color: #ffffff; line-height: 1.25; margin-bottom: 40px; word-break: keep-all; }
+  .insta-card .card-body { font-size: 36px; color: #cccccc; line-height: 1.7; word-break: keep-all; flex: 1; }
+  .insta-card .card-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; }
+  .insta-card .brand { font-size: 28px; font-weight: 700; color: #FF6B00; letter-spacing: .04em; }
+  .insta-card .page-num { font-size: 24px; color: #555; }
+  .insta-card .deco-circle { position: absolute; width: 400px; height: 400px; border-radius: 50%; border: 1px solid rgba(255,107,0,.15); right: -100px; top: -100px; z-index: 1; }
+  .insta-card .deco-circle2 { position: absolute; width: 250px; height: 250px; border-radius: 50%; border: 1px solid rgba(255,107,0,.08); right: 60px; top: 60px; z-index: 1; }
+  .insta-card.cta { background: #FF6B00; }
+  .insta-card.cta .card-title { color: #1a1a1a; }
+  .insta-card.cta .card-body { color: rgba(26,26,26,.85); }
+  .insta-card.cta .brand { color: #1a1a1a; }
+  .insta-card.cta .page-num { color: rgba(26,26,26,.5); }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>드럼몬스터 콘텐츠 생성기</h1>
-  <span>구글 시트 연동</span>
+  <h1>드럼몬스터 <span class="orange">콘텐츠 생성기</span></h1>
+  <span style="color:#555">구글 시트 연동</span>
 </div>
 
 <div class="container">
-
   <div class="step-indicator">
     <span class="dot" id="dot1"></span> 주제 선택
     <span class="sep">→</span>
-    <span class="dot" id="dot2"></span> 생성
+    <span class="dot" id="dot2"></span> URL / 소재
     <span class="sep">→</span>
-    <span class="dot" id="dot3"></span> 저장 완료
+    <span class="dot" id="dot3"></span> 생성
+    <span class="sep">→</span>
+    <span class="dot" id="dot4"></span> 카드 다운로드
   </div>
 
-  <!-- STEP 1 -->
+  <!-- STEP 1: 주제 선택 -->
   <div id="step1">
     <div class="card">
       <h2>주제 선택</h2>
       <div class="status-msg" id="load-status">구글 시트에서 주제 불러오는 중...</div>
       <div id="topic-list"></div>
-      <button class="gen-btn" id="gen-btn" onclick="generate()" disabled>콘텐츠 생성하기 →</button>
+      <button class="gen-btn" id="next-btn" onclick="goStep2()" disabled>다음 →</button>
     </div>
   </div>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: URL 입력 + 소재 -->
   <div id="step2" style="display:none">
     <div class="card">
+      <h2>소재 입력</h2>
+      <p style="font-size:13px;color:#999;margin-bottom:12px">제품 페이지 URL을 입력하면 자동으로 정보를 가져와요</p>
+      <input class="url-input" id="url-input" type="url" placeholder="https://www.sabian.com/product/...">
+      <button class="gen-btn" onclick="crawl()" style="margin-bottom:12px">URL에서 정보 가져오기</button>
+      <div class="crawl-status" id="crawl-status"></div>
+
+      <!-- 이미지 선택 (크롤링 성공 시 자동, 실패 시 수동) -->
+      <div id="img-section">
+        <p style="font-size:13px;font-weight:600;margin-bottom:8px" id="img-label">제품 이미지</p>
+        <div id="crawled-imgs" style="display:none;margin-bottom:12px">
+          <p style="font-size:12px;color:#999;margin-bottom:8px">크롤링된 이미지 — 클릭해서 선택</p>
+          <div id="img-thumbs" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+          <p style="font-size:13px;color:#999">이미지를 직접 업로드하려면 클릭하세요</p>
+          <p style="font-size:11px;color:#bbb;margin-top:4px">JPG, PNG, WEBP</p>
+        </div>
+        <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleUpload(this)">
+        <img id="img-preview" class="img-preview">
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="action-btn" onclick="goStep1()">← 뒤로</button>
+        <button class="gen-btn" id="gen-btn" onclick="generate()" style="flex:1" disabled>콘텐츠 생성하기 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: 생성 중 -->
+  <div id="step3" style="display:none">
+    <div class="card">
       <h2>생성 중</h2>
-      <div style="font-size:14px;font-weight:500;margin-bottom:8px" id="gen-status">Claude API 호출 중...</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px" id="gen-status">Claude API 호출 중...</div>
       <div class="loading-bar"><div class="loading-fill" id="lbar"></div></div>
       <div style="font-size:12px;color:#999" id="gen-detail">슬라이드 스크립트 작성 중</div>
     </div>
   </div>
 
-  <!-- STEP 3 -->
-  <div id="step3" style="display:none">
+  <!-- STEP 4: 결과 -->
+  <div id="step4" style="display:none">
     <div class="card">
-      <div class="status-msg" id="save-status"></div>
+      <div class="status-msg save-success" id="save-status">콘텐츠 생성 완료 — 카드를 다운로드하세요</div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('slides')">슬라이드 스크립트</button>
+        <button class="tab-btn active" onclick="showTab('preview')">카드 미리보기</button>
+        <button class="tab-btn" onclick="showTab('slides')">슬라이드 스크립트</button>
         <button class="tab-btn" onclick="showTab('caption')">인스타 캡션</button>
         <button class="tab-btn" onclick="showTab('blog')">블로그 초안</button>
       </div>
-      <div id="out-slides"></div>
+      <div id="out-preview">
+        <div class="preview-grid" id="preview-grid"></div>
+        <button class="dl-btn" onclick="downloadAll()" style="width:100%;padding:12px;font-size:14px">전체 이미지 다운로드 (5장)</button>
+      </div>
+      <div id="out-slides" style="display:none"></div>
       <div id="out-caption" style="display:none"></div>
       <div id="out-blog" style="display:none"></div>
       <div class="action-btns">
-        <button class="action-btn" onclick="resetApp()">← 다른 주제 생성</button>
+        <button class="action-btn" onclick="resetApp()">← 처음으로</button>
       </div>
     </div>
   </div>
-
 </div>
 
+<div class="render-area" id="render-area"></div>
+
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyh4wEpQA4r7L_OQr-E-vCUFaxMDHk0PvzeLlxTD9vGLFdbFGE6AB0iWzH_LMxq4r95/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxItu1K5hX4vol10R-Km1Qe-UFMNWkclko0cYX7XcQbJSGp35dbnZU5PTw3TpgkHv8T/exec';
 const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 let selectedTopic = null;
 let topicsData = [];
+let selectedImageUrl = null;
+let selectedImageDataUrl = null;
+let generatedSlides = [];
 const catClass = { '악기역사':'pill-history', '제품리뷰':'pill-review', '드러머소개':'pill-artist' };
 
 async function loadTopics() {
@@ -121,7 +198,7 @@ async function loadTopics() {
     topicsData = data.topics || [];
     document.getElementById('load-status').textContent = `시트에서 주제 ${topicsData.length}개 불러왔어요`;
   } catch(e) {
-    document.getElementById('load-status').textContent = '시트 연결 실패 — 샘플 주제로 대체합니다';
+    document.getElementById('load-status').textContent = '샘플 주제로 표시합니다';
     topicsData = [
       {id:'1', category:'악기역사', topic:'심벌의 역사 — 터키부터 지금까지', status:'대기중'},
       {id:'2', category:'제품리뷰', topic:'입문자용 스네어 드럼 TOP 5', status:'대기중'},
@@ -143,8 +220,7 @@ function renderTopics() {
       </div>
       <div class="topic-title">${t.topic}</div>
       <div class="topic-meta">id: ${t.id}</div>
-    </button>
-  `).join('');
+    </button>`).join('');
 }
 
 function selectTopic(id) {
@@ -153,14 +229,98 @@ function selectTopic(id) {
     const el = document.getElementById('t'+t.id);
     if(el) el.classList.toggle('selected', String(t.id) === String(id));
   });
-  const btn = document.getElementById('gen-btn');
-  btn.disabled = false;
+  document.getElementById('next-btn').disabled = false;
 }
 
-function buildPrompt(topic) {
+function goStep1() {
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('dot1').className = 'dot active';
+  document.getElementById('dot2').className = 'dot';
+}
+
+function goStep2() {
+  if(!selectedTopic) return;
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('dot1').className = 'dot done';
+  document.getElementById('dot2').className = 'dot active';
+  // 제품리뷰가 아니면 이미지 섹션 숨기고 바로 생성 가능
+  if(selectedTopic.category !== '제품리뷰') {
+    document.getElementById('img-section').style.display = 'none';
+    document.getElementById('gen-btn').disabled = false;
+  } else {
+    document.getElementById('img-section').style.display = 'block';
+  }
+}
+
+async function crawl() {
+  const url = document.getElementById('url-input').value.trim();
+  if(!url) return;
+  const statusEl = document.getElementById('crawl-status');
+  statusEl.className = 'crawl-status';
+  statusEl.textContent = '크롤링 중...';
+  statusEl.style.display = 'block';
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=crawl&url=' + encodeURIComponent(url));
+    const data = await res.json();
+    if(data.success && data.images && data.images.length > 0) {
+      statusEl.className = 'crawl-status crawl-ok';
+      statusEl.textContent = `이미지 ${data.images.length}개 발견! 사용할 이미지를 선택하세요`;
+      showCrawledImages(data.images);
+      document.getElementById('gen-btn').disabled = false;
+    } else {
+      throw new Error('이미지 없음');
+    }
+  } catch(e) {
+    statusEl.className = 'crawl-status crawl-fail';
+    statusEl.textContent = '자동 크롤링 실패 — 이미지를 직접 업로드해주세요';
+    document.getElementById('upload-area').style.display = 'block';
+  }
+}
+
+function showCrawledImages(images) {
+  const thumbs = document.getElementById('img-thumbs');
+  thumbs.innerHTML = images.map(src => `
+    <img src="${src}" onclick="selectCrawledImg('${src}', this)"
+      style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border .15s"
+      onerror="this.style.display='none'">`).join('');
+  document.getElementById('crawled-imgs').style.display = 'block';
+  document.getElementById('upload-area').style.display = 'block';
+}
+
+function selectCrawledImg(src, el) {
+  selectedImageUrl = src;
+  selectedImageDataUrl = null;
+  document.querySelectorAll('#img-thumbs img').forEach(i => i.style.border = '2px solid transparent');
+  el.style.border = '2px solid #FF6B00';
+  const preview = document.getElementById('img-preview');
+  preview.src = src;
+  preview.style.display = 'block';
+  document.getElementById('gen-btn').disabled = false;
+}
+
+function handleUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    selectedImageDataUrl = e.target.result;
+    selectedImageUrl = null;
+    const preview = document.getElementById('img-preview');
+    preview.src = selectedImageDataUrl;
+    preview.style.display = 'block';
+    document.getElementById('gen-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function buildPrompt(topic, crawledText) {
+  const extra = crawledText ? `\n\n참고 정보 (크롤링):\n${crawledText.substring(0, 1000)}` : '';
   return `드럼몬스터(사당동 드럼 악기점) SNS용 카드뉴스를 만들어줘.
 주제: ${topic.topic}
-카테고리: ${topic.category}
+카테고리: ${topic.category}${extra}
 
 아래 JSON 형식으로만 응답해. 다른 말은 하지 마.
 {
@@ -179,10 +339,10 @@ function buildPrompt(topic) {
 
 async function generate() {
   if(!selectedTopic) return;
-  document.getElementById('step1').style.display = 'none';
-  document.getElementById('step2').style.display = 'block';
-  document.getElementById('dot1').className = 'dot done';
-  document.getElementById('dot2').className = 'dot active';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'block';
+  document.getElementById('dot2').className = 'dot done';
+  document.getElementById('dot3').className = 'dot active';
 
   const bar = document.getElementById('lbar');
   const detail = document.getElementById('gen-detail');
@@ -192,8 +352,18 @@ async function generate() {
     bar.style.width = prog+'%';
     if(prog < 30) detail.textContent = 'Claude API 연결 중...';
     else if(prog < 65) detail.textContent = '슬라이드 스크립트 작성 중...';
-    else detail.textContent = '캡션 & 블로그 초안 생성 중...';
+    else detail.textContent = '카드 이미지 렌더링 준비 중...';
   }, 200);
+
+  let crawledText = null;
+  const url = document.getElementById('url-input').value.trim();
+  if(url) {
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=crawl&url=' + encodeURIComponent(url));
+      const data = await res.json();
+      if(data.success) crawledText = data.text;
+    } catch(e) {}
+  }
 
   let parsed;
   try {
@@ -204,7 +374,7 @@ async function generate() {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: '드럼몬스터 SNS 콘텐츠 담당자입니다. 요청한 JSON 형식으로만 응답하세요.',
-        messages: [{ role: 'user', content: buildPrompt(selectedTopic) }]
+        messages: [{ role: 'user', content: buildPrompt(selectedTopic, crawledText) }]
       })
     });
     const data = await res.json();
@@ -216,36 +386,94 @@ async function generate() {
 
   clearInterval(ticker);
   bar.style.width = '100%';
-  document.getElementById('gen-status').textContent = '구글 시트에 저장 중...';
 
-  let saved = false;
   try {
     await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'saveContent',
-        topic_id: selectedTopic.id,
-        slides: parsed.slides,
-        caption: parsed.caption,
-        hashtags: parsed.hashtags,
-        blog_intro: parsed.blog_intro
+        action: 'saveContent', topic_id: selectedTopic.id,
+        slides: parsed.slides, caption: parsed.caption,
+        hashtags: parsed.hashtags, blog_intro: parsed.blog_intro
       })
     });
-    saved = true;
-  } catch(e) { saved = false; }
+  } catch(e) {}
 
-  document.getElementById('step2').style.display = 'none';
-  document.getElementById('step3').style.display = 'block';
-  document.getElementById('dot2').className = 'dot done';
+  generatedSlides = parsed.slides;
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('step4').style.display = 'block';
   document.getElementById('dot3').className = 'dot done';
-
-  const saveMsg = document.getElementById('save-status');
-  saveMsg.textContent = saved ? '구글 시트 저장 완료 — 콘텐츠출력 시트에서 확인하세요' : '콘텐츠 생성 완료';
-  if(saved) saveMsg.classList.add('save-success');
+  document.getElementById('dot4').className = 'dot active';
 
   renderResult(parsed);
+  renderCards(parsed.slides);
+}
+
+function renderCards(slides) {
+  const area = document.getElementById('render-area');
+  const grid = document.getElementById('preview-grid');
+  area.innerHTML = '';
+  grid.innerHTML = '<div style="font-size:12px;color:#999;margin-bottom:8px;grid-column:1/-1">카드 클릭 → 개별 다운로드</div>';
+
+  const bgSrc = selectedImageDataUrl || selectedImageUrl;
+
+  slides.forEach((slide, idx) => {
+    const isCta = idx === slides.length - 1;
+    const cardId = `card-${idx}`;
+
+    const cardEl = document.createElement('div');
+    cardEl.id = cardId;
+    cardEl.className = `insta-card${isCta ? ' cta' : ''}`;
+    cardEl.innerHTML = `
+      ${bgSrc && !isCta ? `<img class="bg-img" src="${bgSrc}" crossorigin="anonymous">` : ''}
+      ${bgSrc && !isCta ? `<div class="overlay"></div>` : ''}
+      <div class="deco-circle"></div>
+      <div class="deco-circle2"></div>
+      <div class="content">
+        <div>
+          <div class="accent-bar"></div>
+          <div class="slide-no">${String(slide.no).padStart(2,'0')}</div>
+          <div class="card-title">${slide.title}</div>
+          <div class="card-body">${slide.body}</div>
+        </div>
+        <div class="card-footer">
+          <div class="brand">DRUM MONSTER</div>
+          <div class="page-num">${slide.no} / ${slides.length}</div>
+        </div>
+      </div>`;
+    area.appendChild(cardEl);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'canvas-wrap';
+    wrap.onclick = () => downloadCard(cardId, `drummonster_${slide.no}.png`);
+    wrap.innerHTML = `<canvas id="preview-${idx}" style="width:100%;display:block;border-radius:8px"></canvas><div class="dl-overlay">다운로드</div>`;
+    grid.appendChild(wrap);
+
+    setTimeout(() => {
+      html2canvas(cardEl, { scale: 0.19, useCORS: true, allowTaint: true, backgroundColor: null }).then(canvas => {
+        const preview = document.getElementById(`preview-${idx}`);
+        preview.width = canvas.width;
+        preview.height = canvas.height;
+        preview.getContext('2d').drawImage(canvas, 0, 0);
+      });
+    }, idx * 400);
+  });
+}
+
+async function downloadCard(cardId, filename) {
+  const el = document.getElementById(cardId);
+  const canvas = await html2canvas(el, { scale: 1, useCORS: true, allowTaint: true, backgroundColor: null });
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = filename;
+  a.click();
+}
+
+async function downloadAll() {
+  for(let i = 0; i < generatedSlides.length; i++) {
+    await downloadCard(`card-${i}`, `drummonster_${selectedTopic.id}_${i+1}.png`);
+    await new Promise(r => setTimeout(r, 600));
+  }
 }
 
 function renderResult(data) {
@@ -255,14 +483,12 @@ function renderResult(data) {
       <div class="slide-title">${s.title}</div>
       <div class="slide-body">${s.body}</div>
     </div>`).join('');
-
   const tags = (data.hashtags||[]).map(t => `<span class="hashtag">#${t.replace('#','')}</span>`).join('');
   document.getElementById('out-caption').innerHTML = `
     <div class="caption-box">
       <div style="font-size:14px;line-height:1.8;margin-bottom:12px">${data.caption}</div>
       <div style="border-top:1px solid #e5e5e5;padding-top:10px">${tags}</div>
     </div>`;
-
   document.getElementById('out-blog').innerHTML = `
     <div class="caption-box">
       <div style="font-size:12px;color:#999;margin-bottom:8px">블로그 도입부</div>
@@ -271,17 +497,17 @@ function renderResult(data) {
 }
 
 function showTab(name) {
-  ['slides','caption','blog'].forEach(t => {
+  ['preview','slides','caption','blog'].forEach(t => {
     document.getElementById('out-'+t).style.display = t===name ? 'block' : 'none';
   });
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['slides','caption','blog'][i]===name);
+    b.classList.toggle('active', ['preview','slides','caption','blog'][i]===name);
   });
 }
 
 function getFallback(id) {
   const f = {
-    '1':{ slides:[{no:1,title:'심벌, 소리의 시작',body:'고대 중동에서 시작된 심벌은 수천 년의 역사를 가진 타악기입니다.'},{no:2,title:'터키 장인의 비밀',body:'오스만 제국의 장인들이 개발한 합금 기법이 오늘날 Zildjian의 기원입니다.'},{no:3,title:'Zildjian 400년',body:'1623년 창업 이후 비밀 합금 공식을 가문 대대로 전수하고 있습니다.'},{no:4,title:'재즈가 바꾼 심벌',body:'20세기 재즈의 등장으로 크래시·라이드·하이햇이 분화했습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'심벌 하나에 400년의 역사가 담겨 있습니다.', hashtags:['심벌역사','Zildjian','드럼악기','드럼몬스터','사당드럼'], blog_intro:'심벌의 역사는 단순한 악기사를 넘어 문명 교류의 이야기입니다.' },
+    '1':{ slides:[{no:1,title:'심벌, 소리의 시작',body:'고대 중동에서 시작된 심벌은 수천 년의 역사를 가진 타악기입니다.'},{no:2,title:'터키 장인의 비밀',body:'오스만 제국 장인들의 합금 기법이 오늘날 Zildjian의 기원입니다.'},{no:3,title:'Zildjian 400년',body:'1623년 창업 이후 비밀 합금 공식을 가문 대대로 전수하고 있습니다.'},{no:4,title:'재즈가 바꾼 심벌',body:'20세기 재즈의 등장으로 크래시·라이드·하이햇이 분화했습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'심벌 하나에 400년의 역사가 담겨 있습니다.', hashtags:['심벌역사','Zildjian','드럼악기','드럼몬스터','사당드럼'], blog_intro:'심벌의 역사는 단순한 악기사를 넘어 문명 교류의 이야기입니다.' },
     '2':{ slides:[{no:1,title:'스네어, 드럼의 핵심',body:'입문자에게 맞는 스네어 5가지를 엄선했습니다.'},{no:2,title:'1위 Pearl Export',body:'가성비 최고의 입문용 스네어입니다.'},{no:3,title:'2위 Ludwig Accent',body:'밝고 선명한 소리로 팝·록에 적합합니다.'},{no:4,title:'구매 전 체크리스트',body:'재질·직경·깊이를 꼭 확인하세요.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'스네어 고민 중이신가요? TOP 5를 확인해보세요.', hashtags:['스네어드럼','입문드럼','드럼추천','드럼몬스터','드럼구매'], blog_intro:'입문자에게 맞는 스네어를 고르는 것은 쉽지 않습니다.' },
     '3':{ slides:[{no:1,title:'Elvin Jones는 누구',body:'1927년 미시간 출생. 재즈 명가 존스 형제 중 막내입니다.'},{no:2,title:'Coltrane과의 만남',body:'1960~1966년 John Coltrane 4중주단에서 역사를 새로 썼습니다.'},{no:3,title:'폴리리듬의 마법',body:'복합 리듬으로 드럼을 멜로디 악기의 경지로 끌어올렸습니다.'},{no:4,title:'그가 남긴 유산',body:'2004년 별세 후에도 드럼 교육의 교과서로 남아 있습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'재즈 드럼의 역사를 바꾼 Elvin Jones.', hashtags:['ElvinJones','재즈드럼','드럼역사','드러머','드럼몬스터'], blog_intro:'재즈 역사에서 드럼이 표현의 중심이 된 순간, 그 중심에 Elvin Jones가 있었습니다.' }
   };
@@ -289,11 +515,16 @@ function getFallback(id) {
 }
 
 function resetApp() {
-  selectedTopic = null;
-  document.getElementById('step3').style.display = 'none';
+  selectedTopic = null; selectedImageUrl = null; selectedImageDataUrl = null; generatedSlides = [];
+  document.getElementById('step4').style.display = 'none';
   document.getElementById('step1').style.display = 'block';
-  ['dot1','dot2','dot3'].forEach(d => document.getElementById(d).className = 'dot');
-  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('url-input').value = '';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('crawled-imgs').style.display = 'none';
+  document.getElementById('crawl-status').style.display = 'none';
+  document.getElementById('render-area').innerHTML = '';
+  ['dot1','dot2','dot3','dot4'].forEach(d => document.getElementById(d).className = 'dot');
+  document.getElementById('next-btn').disabled = true;
   loadTopics();
 }
 
