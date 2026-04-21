@@ -123,9 +123,9 @@ async function loadTopics() {
   } catch(e) {
     document.getElementById('load-status').textContent = '시트 연결 실패 — 샘플 주제로 대체합니다';
     topicsData = [
-      {id:'001', category:'악기역사', topic:'심벌의 역사 — 터키부터 지금까지', status:'대기중'},
-      {id:'002', category:'제품리뷰', topic:'입문자용 스네어 드럼 TOP 5', status:'대기중'},
-      {id:'003', category:'드러머소개', topic:'Elvin Jones — 재즈 드러밍의 혁명', status:'대기중'}
+      {id:'1', category:'악기역사', topic:'심벌의 역사 — 터키부터 지금까지', status:'대기중'},
+      {id:'2', category:'제품리뷰', topic:'입문자용 스네어 드럼 TOP 5', status:'대기중'},
+      {id:'3', category:'드러머소개', topic:'Elvin Jones — 재즈 드러밍의 혁명', status:'대기중'}
     ];
   }
   renderTopics();
@@ -281,11 +281,11 @@ function showTab(name) {
 
 function getFallback(id) {
   const f = {
-    '001':{ slides:[{no:1,title:'심벌, 소리의 시작',body:'고대 중동에서 시작된 심벌은 수천 년의 역사를 가진 타악기입니다.'},{no:2,title:'터키 장인의 비밀',body:'오스만 제국의 장인들이 개발한 합금 기법이 오늘날 Zildjian의 기원입니다.'},{no:3,title:'Zildjian 400년',body:'1623년 창업 이후 비밀 합금 공식을 가문 대대로 전수하고 있습니다.'},{no:4,title:'재즈가 바꾼 심벌',body:'20세기 재즈의 등장으로 크래시·라이드·하이햇이 분화했습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'심벌 하나에 400년의 역사가 담겨 있습니다.', hashtags:['심벌역사','Zildjian','드럼악기','드럼몬스터','사당드럼'], blog_intro:'심벌의 역사는 단순한 악기사를 넘어 문명 교류의 이야기입니다.' },
-    '002':{ slides:[{no:1,title:'스네어, 드럼의 핵심',body:'입문자에게 맞는 스네어 5가지를 엄선했습니다.'},{no:2,title:'1위 Pearl Export',body:'가성비 최고의 입문용 스네어입니다.'},{no:3,title:'2위 Ludwig Accent',body:'밝고 선명한 소리로 팝·록에 적합합니다.'},{no:4,title:'구매 전 체크리스트',body:'재질·직경·깊이를 꼭 확인하세요.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'스네어 고민 중이신가요? TOP 5를 확인해보세요.', hashtags:['스네어드럼','입문드럼','드럼추천','드럼몬스터','드럼구매'], blog_intro:'입문자에게 맞는 스네어를 고르는 것은 쉽지 않습니다.' },
-    '003':{ slides:[{no:1,title:'Elvin Jones는 누구',body:'1927년 미시간 출생. 재즈 명가 존스 형제 중 막내입니다.'},{no:2,title:'Coltrane과의 만남',body:'1960~1966년 John Coltrane 4중주단에서 역사를 새로 썼습니다.'},{no:3,title:'폴리리듬의 마법',body:'복합 리듬으로 드럼을 멜로디 악기의 경지로 끌어올렸습니다.'},{no:4,title:'그가 남긴 유산',body:'2004년 별세 후에도 드럼 교육의 교과서로 남아 있습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'재즈 드럼의 역사를 바꾼 Elvin Jones.', hashtags:['ElvinJones','재즈드럼','드럼역사','드러머','드럼몬스터'], blog_intro:'재즈 역사에서 드럼이 표현의 중심이 된 순간, 그 중심에 Elvin Jones가 있었습니다.' }
+    '1':{ slides:[{no:1,title:'심벌, 소리의 시작',body:'고대 중동에서 시작된 심벌은 수천 년의 역사를 가진 타악기입니다.'},{no:2,title:'터키 장인의 비밀',body:'오스만 제국의 장인들이 개발한 합금 기법이 오늘날 Zildjian의 기원입니다.'},{no:3,title:'Zildjian 400년',body:'1623년 창업 이후 비밀 합금 공식을 가문 대대로 전수하고 있습니다.'},{no:4,title:'재즈가 바꾼 심벌',body:'20세기 재즈의 등장으로 크래시·라이드·하이햇이 분화했습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'심벌 하나에 400년의 역사가 담겨 있습니다.', hashtags:['심벌역사','Zildjian','드럼악기','드럼몬스터','사당드럼'], blog_intro:'심벌의 역사는 단순한 악기사를 넘어 문명 교류의 이야기입니다.' },
+    '2':{ slides:[{no:1,title:'스네어, 드럼의 핵심',body:'입문자에게 맞는 스네어 5가지를 엄선했습니다.'},{no:2,title:'1위 Pearl Export',body:'가성비 최고의 입문용 스네어입니다.'},{no:3,title:'2위 Ludwig Accent',body:'밝고 선명한 소리로 팝·록에 적합합니다.'},{no:4,title:'구매 전 체크리스트',body:'재질·직경·깊이를 꼭 확인하세요.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'스네어 고민 중이신가요? TOP 5를 확인해보세요.', hashtags:['스네어드럼','입문드럼','드럼추천','드럼몬스터','드럼구매'], blog_intro:'입문자에게 맞는 스네어를 고르는 것은 쉽지 않습니다.' },
+    '3':{ slides:[{no:1,title:'Elvin Jones는 누구',body:'1927년 미시간 출생. 재즈 명가 존스 형제 중 막내입니다.'},{no:2,title:'Coltrane과의 만남',body:'1960~1966년 John Coltrane 4중주단에서 역사를 새로 썼습니다.'},{no:3,title:'폴리리듬의 마법',body:'복합 리듬으로 드럼을 멜로디 악기의 경지로 끌어올렸습니다.'},{no:4,title:'그가 남긴 유산',body:'2004년 별세 후에도 드럼 교육의 교과서로 남아 있습니다.'},{no:5,title:'드럼몬스터에서 만나보세요',body:'사당동 매장 방문 또는 온라인 구매 가능.'}], caption:'재즈 드럼의 역사를 바꾼 Elvin Jones.', hashtags:['ElvinJones','재즈드럼','드럼역사','드러머','드럼몬스터'], blog_intro:'재즈 역사에서 드럼이 표현의 중심이 된 순간, 그 중심에 Elvin Jones가 있었습니다.' }
   };
-  return f[id] || f['001'];
+  return f[id] || f['1'];
 }
 
 function resetApp() {
