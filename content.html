@@ -248,7 +248,39 @@ async function goStep2() {
   document.getElementById('gen-btn').disabled = false;
 
   // 주제 키워드로 Unsplash 자동 이미지 로드
-  const keyword = selectedTopic.topic.replace(/[—\-]/g, ' ').split(' ').slice(0, 3).join(' ');
+  // 카테고리별 영어 키워드 변환
+  const topicText = selectedTopic.topic;
+  let keyword = 'drum music';
+  if(selectedTopic.category === '악기역사') {
+    if(topicText.includes('심벌') || topicText.includes('Zildjian') || topicText.includes('Sabian') || topicText.includes('Meinl')) keyword = 'cymbal drum';
+    else if(topicText.includes('젬베')) keyword = 'djembe african drum';
+    else if(topicText.includes('카혼')) keyword = 'cajon percussion';
+    else if(topicText.includes('봉고') || topicText.includes('콩가')) keyword = 'bongo conga percussion';
+    else if(topicText.includes('마림바')) keyword = 'marimba xylophone';
+    else if(topicText.includes('전자')) keyword = 'electronic drum kit';
+    else if(topicText.includes('Pearl')) keyword = 'Pearl drum kit';
+    else if(topicText.includes('Ludwig')) keyword = 'Ludwig drum kit';
+    else if(topicText.includes('DW')) keyword = 'DW drum kit';
+    else if(topicText.includes('Tama')) keyword = 'Tama drum kit';
+    else keyword = 'drum history music';
+  } else if(selectedTopic.category === '제품리뷰') {
+    if(topicText.includes('스네어')) keyword = 'snare drum';
+    else if(topicText.includes('심벌')) keyword = 'cymbal';
+    else if(topicText.includes('전자드럼')) keyword = 'electronic drum';
+    else if(topicText.includes('스틱')) keyword = 'drum sticks';
+    else if(topicText.includes('페달')) keyword = 'drum pedal';
+    else if(topicText.includes('의자') || topicText.includes('스툴')) keyword = 'drum throne stool';
+    else if(topicText.includes('헤드')) keyword = 'drum head';
+    else if(topicText.includes('패드')) keyword = 'drum practice pad';
+    else if(topicText.includes('케이스')) keyword = 'drum case bag';
+    else if(topicText.includes('젬베')) keyword = 'djembe drum';
+    else if(topicText.includes('카혼')) keyword = 'cajon box drum';
+    else keyword = 'drum kit equipment';
+  } else if(selectedTopic.category === '드러머소개') {
+    if(topicText.includes('재즈') || topicText.includes('Elvin') || topicText.includes('Buddy') || topicText.includes('Tony') || topicText.includes('Max')) keyword = 'jazz drummer';
+    else if(topicText.includes('록') || topicText.includes('Bonham') || topicText.includes('Moon') || topicText.includes('Peart')) keyword = 'rock drummer';
+    else keyword = 'professional drummer';
+  }
   document.getElementById('img-label').textContent = '배경 이미지 자동 검색 중...';
   try {
     const res = await fetch(SCRIPT_URL + '?action=getImage&keyword=' + encodeURIComponent(keyword) + '&cachebust=' + Date.now());
