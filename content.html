@@ -182,8 +182,7 @@
 <div class="render-area" id="render-area"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxItu1K5hX4vol10R-Km1Qe-UFMNWkclko0cYX7XcQbJSGp35dbnZU5PTw3TpgkHv8T/exec';
-const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFLHdPezKvQiASl20as0-WqRoFy5oQ8e58eCqF7cYeoU6LBcatsD-KcEKsMkfQJPOK/exec';
 let selectedTopic = null;
 let topicsData = [];
 let selectedImageUrl = null;
@@ -239,18 +238,32 @@ function goStep1() {
   document.getElementById('dot2').className = 'dot';
 }
 
-function goStep2() {
+async function goStep2() {
   if(!selectedTopic) return;
   document.getElementById('step1').style.display = 'none';
   document.getElementById('step2').style.display = 'block';
   document.getElementById('dot1').className = 'dot done';
   document.getElementById('dot2').className = 'dot active';
-  // 제품리뷰가 아니면 이미지 섹션 숨기고 바로 생성 가능
-  if(selectedTopic.category !== '제품리뷰') {
-    document.getElementById('img-section').style.display = 'none';
-    document.getElementById('gen-btn').disabled = false;
-  } else {
-    document.getElementById('img-section').style.display = 'block';
+  document.getElementById('img-section').style.display = 'block';
+  document.getElementById('gen-btn').disabled = false;
+
+  // 주제 키워드로 Unsplash 자동 이미지 로드
+  const keyword = selectedTopic.topic.replace(/[—\-]/g, ' ').split(' ').slice(0, 3).join(' ');
+  document.getElementById('img-label').textContent = '배경 이미지 자동 검색 중...';
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getImage&keyword=' + encodeURIComponent(keyword));
+    const data = await res.json();
+    if(data.success && data.url) {
+      selectedImageUrl = data.url;
+      const preview = document.getElementById('img-preview');
+      preview.src = data.url;
+      preview.style.display = 'block';
+      document.getElementById('img-label').textContent = '배경 이미지 자동 선택됨 (변경하려면 아래에서 업로드)';
+    } else {
+      document.getElementById('img-label').textContent = '자동 검색 실패 — 직접 업로드해주세요';
+    }
+  } catch(e) {
+    document.getElementById('img-label').textContent = '자동 검색 실패 — 직접 업로드해주세요';
   }
 }
 
@@ -367,19 +380,21 @@ async function generate() {
 
   let parsed;
   try {
-    const res = await fetch(CLAUDE_API, {
+    const res = await fetch(SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: '드럼몬스터 SNS 콘텐츠 담당자입니다. 요청한 JSON 형식으로만 응답하세요.',
-        messages: [{ role: 'user', content: buildPrompt(selectedTopic, crawledText) }]
+        action: 'generateContent',
+        prompt: buildPrompt(selectedTopic, crawledText)
       })
     });
     const data = await res.json();
-    const raw = data.content.map(b => b.text||'').join('');
-    parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(data.success) {
+      parsed = data.data;
+    } else {
+      parsed = getFallback(selectedTopic.id);
+    }
   } catch(e) {
     parsed = getFallback(selectedTopic.id);
   }
