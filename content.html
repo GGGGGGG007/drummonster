@@ -251,8 +251,9 @@ async function goStep2() {
   const keyword = selectedTopic.topic.replace(/[—\-]/g, ' ').split(' ').slice(0, 3).join(' ');
   document.getElementById('img-label').textContent = '배경 이미지 자동 검색 중...';
   try {
-    const res = await fetch(SCRIPT_URL + '?action=getImage&keyword=' + encodeURIComponent(keyword));
-    const data = await res.json();
+    const res = await fetch(SCRIPT_URL + '?action=getImage&keyword=' + encodeURIComponent(keyword) + '&cachebust=' + Date.now());
+    const text = await res.text();
+    const data = JSON.parse(text);
     if(data.success && data.url) {
       selectedImageUrl = data.url;
       const preview = document.getElementById('img-preview');
